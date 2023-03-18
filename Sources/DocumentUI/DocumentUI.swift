@@ -193,6 +193,11 @@ public struct AnyTextDocument: TextDocument {
 }
 
 extension ForEach: TextDocument where Content: TextDocument {
+    public init<D, C>(enumerated data: D, separator: String, @TextDocumentBuilder content: @escaping ((offset: Int, element: D.Element)) -> C) where D: Collection, Data == EnumeratedSequence<D>, Content == _ModifiedContent<C, Prefix<String>> {
+        self.init(data.enumerated()) { el in
+            content((el.offset, el.element)).prefix(el.offset > 0 ? separator : "")
+        }
+    }
     public init<D, C>(_ data: D, separator: String, @TextDocumentBuilder content: @escaping (D.Element) -> C) where D: Collection, Data == EnumeratedSequence<D>, Content == _ModifiedContent<C, Prefix<String>> {
         self.init(data.enumerated()) { el in
             content(el.element).prefix(el.offset > 0 ? separator : "")
@@ -208,14 +213,17 @@ extension ForEach: TextDocument where Content: TextDocument {
             self.document = document
         }
         public mutating func modify<M>(_ modifier: M) where M : ViewModifier, ModifyContent == M.Modifiable {
-            modifiers.append({ modifier.modify(content: &$0) })
+            modifiers.append(modifier.modify(content:))
         }
         public mutating func build() -> Content.DocumentInterpolation.Result {
             var result = ""
+            var hasElements = false
             for element in document.data {
+                hasElements = true
                 var interpolation = Content.DocumentInterpolation(document.content(element))
                 result.append(interpolation.build())
             }
+            guard hasElements else { return "" }
             for mod in modifiers { mod(&result) } // modifiers should not be applied if all elements are NullDocument
             return result
         }
@@ -234,10 +242,10 @@ public struct Joined<Separator, T> {
     public init(@TextDocumentBuilder content: () -> TupleDocument<T>) where Separator == NullDocument {
         self.init(separator: NullDocument(), content: content)
     }
-    public init<Element>(separator: Separator, ommitingEmptyElements: Bool = true, elements: [Element]) where Element: TextDocument {
+    public init<Elements>(separator: Separator, ommitingEmptyElements: Bool = true, elements: Elements) where Elements: Sequence, Elements.Element: TextDocument, T == Elements.Element {
         self.separator = separator
         self.ommitingEmptyElements = ommitingEmptyElements
-        self.content = TupleDocument({ elements.map({ $0.buildText() }) })
+        self.content = TupleDocument({ elements.forEach($0.visit) })
     }
 }
 extension Joined: TextDocument where Separator: TextDocument {
@@ -252,28 +260,49 @@ extension Joined: TextDocument where Separator: TextDocument {
             self.document = document
         }
         public mutating func modify<M>(_ modifier: M) where M : ViewModifier, ModifyContent == M.Modifiable {
-            modifiers.append({ modifier.modify(content: &$0) })
+            modifiers.append(modifier.modify(content:))
         }
         public mutating func build() -> String {
             var sepInterpolator = Separator.DocumentInterpolation(document.separator)
-            let items = document.content.build()
-            var result: String
-            if document.ommitingEmptyElements {
-                result = items.lazy
-                    .compactMap({ $0.count > 0 ? $0 : nil })
-                    .joined(separator: sepInterpolator.build())
-            } else {
-                result = items.joined(separator: sepInterpolator.build())
+            let builder = Builder(ommitingEmptyElements: document.ommitingEmptyElements, separator: sepInterpolator.build())
+            document.content.acceptor(builder)
+            guard !builder.result.isEmpty else { return "" }
+            for mod in modifiers { mod(&builder.result) }
+            return builder.result
+        }
+
+        final class Builder: DocumentVisitor {
+            let ommitingEmptyElements: Bool
+            let separator: String
+            var result = ""
+            var shouldAppendSeparator: Bool = false
+
+            init(ommitingEmptyElements: Bool, separator: String) {
+                self.ommitingEmptyElements = ommitingEmptyElements
+                self.separator = separator
             }
-            for mod in modifiers { mod(&result) }
-            return result
+
+            func visit<D>(_ document: D) where D : TextDocument {
+                var interpolation = D.DocumentInterpolation(document)
+                let part = interpolation.build()
+                guard ommitingEmptyElements, part.isEmpty else {
+                    if shouldAppendSeparator {
+                        result.append(separator)
+                        result.append(part)
+                    } else {
+                        result.append(part)
+                    }
+                    shouldAppendSeparator = true
+                    return
+                }
+            }
         }
     }
 }
 
 public struct TupleDocument<T>: TextDocument {
-    let build: () -> [String]
-    init(_ build: @escaping () -> [String]) { self.build = build }
+    let acceptor: (DocumentVisitor) -> Void
+    init(_ acceptor: @escaping (DocumentVisitor) -> Void) { self.acceptor = acceptor }
     public var textBody: Never { fatalError() }
     @_spi(DocumentUI)
     public struct DocumentInterpolation: DocumentInterpolationProtocol {
@@ -285,12 +314,22 @@ public struct TupleDocument<T>: TextDocument {
             self.document = document
         }
         public mutating func modify<M>(_ modifier: M) where M : ViewModifier, ModifyContent == M.Modifiable {
-            modifiers.append({ modifier.modify(content: &$0) })
+            modifiers.append(modifier.modify(content:))
         }
         public mutating func build() -> String {
-            var result = document.build().joined(separator: "")
-            for mod in modifiers { mod(&result) }
-            return result
+            let builder = Builder()
+            document.acceptor(builder)
+            guard !builder.result.isEmpty else { return "" } // TODO: should check that all elements is NullDocument
+            for mod in modifiers { mod(&builder.result) }
+            return builder.result
+        }
+
+        final class Builder: DocumentVisitor {
+            var result: String = ""
+            func visit<D>(_ document: D) where D : TextDocument {
+                var interpolation = D.DocumentInterpolation(document)
+                result.append(interpolation.build())
+            }
         }
     }
 }
@@ -397,5 +436,50 @@ extension _ConditionalModified: TextDocument where Content: TextDocument {
 extension TextDocument {
     public func modifiable(whenContent condition: @escaping (String) -> Bool) -> _ConditionalModified<Self> {
         _ConditionalModified(condition: condition, content: self)
+    }
+}
+
+/// - Environment
+
+struct DocumentWithEnvironmentValue<Content, V>: TextDocument where Content: TextDocument {
+    let keyPath: WritableKeyPath<EnvironmentValues, V>
+    let environmentValue: V
+    let content: Content
+
+    var textBody: Never { fatalError() }
+
+    struct DocumentInterpolation: DocumentInterpolationProtocol {
+        public typealias View = DocumentWithEnvironmentValue<Content, V>
+        public typealias ModifyContent = Content.DocumentInterpolation.ModifyContent
+        let keyPath: WritableKeyPath<EnvironmentValues, V>
+        let value: V
+        var base: Content.DocumentInterpolation
+        @_spi(DocumentUI)
+        public init(_ document: View) {
+            self.keyPath = document.keyPath
+            self.value = document.environmentValue
+            self.base = EnvironmentValues.withValue(document.environmentValue, at: document.keyPath) {
+                Content.DocumentInterpolation(document.content)
+            }
+        }
+        @_spi(DocumentUI)
+        public mutating func modify<M>(_ modifier: M) where M : CoreUI.ViewModifier, ModifyContent == M.Modifiable {
+            base.modify(modifier)
+        }
+        @_spi(DocumentUI)
+        public mutating func build() -> Content.DocumentInterpolation.Result {
+            return EnvironmentValues.withValue(value, at: keyPath) {
+                base.build()
+            }
+        }
+    }
+}
+
+extension TextDocument {
+    public func environment<V>(
+        _ keyPath: WritableKeyPath<EnvironmentValues, V>,
+        _ value: V
+    ) -> some TextDocument {
+        DocumentWithEnvironmentValue(keyPath: keyPath, environmentValue: value, content: self)
     }
 }

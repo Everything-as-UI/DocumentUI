@@ -19,7 +19,7 @@ if isDevelop {
 
 let package = Package(
     name: "DocumentUI",
-    platforms: [.macOS(.v12), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],
+    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],
     products: [
         .library(name: "DocumentUI", targets: ["DocumentUI"])
     ],

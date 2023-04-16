@@ -191,6 +191,16 @@ public struct AnyTextDocument: TextDocument {
         public func build() -> String { document.interpolation.build() }
     }
 }
+extension AnyTextDocument: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self.interpolation = AnyInterpolation(String.DocumentInterpolation(value))
+    }
+}
+extension AnyTextDocument: ExpressibleByStringInterpolation {
+    public init(stringInterpolation: DefaultStringInterpolation) {
+        self.init(stringLiteral: stringInterpolation.description)
+    }
+}
 
 extension ForEach: TextDocument where Content: TextDocument {
     public init<D, C>(enumerated data: D, separator: String, @TextDocumentBuilder content: @escaping ((offset: Int, element: D.Element)) -> C) where D: Collection, Data == EnumeratedSequence<D>, Content == _ModifiedContent<C, Prefix<String>> {
@@ -380,8 +390,14 @@ extension TextDocument {
     public func prefix<T>(_ value: T) -> _ModifiedDocument<Self, Prefix<T>> {
         _ModifiedDocument(self, modifier: Prefix(value: value))
     }
+    public func prefix<T>(@TextDocumentBuilder _ content: () -> T) -> _ModifiedDocument<Self, Prefix<T>> {
+        _ModifiedDocument(self, modifier: Prefix(value: content()))
+    }
     public func suffix<T>(_ value: T) -> _ModifiedDocument<Self, Suffix<T>> {
         _ModifiedDocument(self, modifier: Suffix(value: value))
+    }
+    public func suffix<T>(@TextDocumentBuilder _ content: () -> T) -> _ModifiedDocument<Self, Suffix<T>> {
+        _ModifiedDocument(self, modifier: Suffix(value: content()))
     }
 }
 public struct PercentEncoding: TextDocumentModifier {
@@ -441,15 +457,11 @@ extension TextDocument {
 
 /// - Environment
 
-struct DocumentWithEnvironmentValue<Content, V>: TextDocument where Content: TextDocument {
-    let keyPath: WritableKeyPath<EnvironmentValues, V>
-    let environmentValue: V
-    let content: Content
+extension ViewWithEnvironmentValue: TextDocument where Content: TextDocument {
+    public var textBody: Never { fatalError() }
 
-    var textBody: Never { fatalError() }
-
-    struct DocumentInterpolation: DocumentInterpolationProtocol {
-        public typealias View = DocumentWithEnvironmentValue<Content, V>
+    public struct DocumentInterpolation: DocumentInterpolationProtocol {
+        public typealias View = ViewWithEnvironmentValue<Content, V>
         public typealias ModifyContent = Content.DocumentInterpolation.ModifyContent
         let keyPath: WritableKeyPath<EnvironmentValues, V>
         let value: V
@@ -457,8 +469,8 @@ struct DocumentWithEnvironmentValue<Content, V>: TextDocument where Content: Tex
         @_spi(DocumentUI)
         public init(_ document: View) {
             self.keyPath = document.keyPath
-            self.value = document.environmentValue
-            self.base = EnvironmentValues.withValue(document.environmentValue, at: document.keyPath) {
+            self.value = document.value
+            self.base = EnvironmentValues.withValue(document.value, at: document.keyPath) {
                 Content.DocumentInterpolation(document.content)
             }
         }
@@ -480,6 +492,6 @@ extension TextDocument {
         _ keyPath: WritableKeyPath<EnvironmentValues, V>,
         _ value: V
     ) -> some TextDocument {
-        DocumentWithEnvironmentValue(keyPath: keyPath, environmentValue: value, content: self)
+        ViewWithEnvironmentValue(keyPath, value: value, content: self)
     }
 }

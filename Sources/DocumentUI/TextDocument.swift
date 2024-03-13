@@ -41,6 +41,8 @@ extension String.StringInterpolation {
     }
 }
 
+// PROBLEM: can't recursive nesting because of generic type;
+// SOLUTION: erase to AnyTextDocument
 public struct DefaultDocumentInterpolation<Document>: DocumentInterpolationProtocol where Document: TextDocument {
     public typealias View = Document
     public typealias ModifyContent = Document.TextBody.DocumentInterpolation.ModifyContent

@@ -182,7 +182,7 @@ extension ViewWithEnvironmentValue: TextDocument where Content: TextDocument {
         }
         @_spi(DocumentUI)
         public mutating func build() -> Content.DocumentInterpolation.Result {
-            return EnvironmentValues.withValue(value, at: keyPath) {
+            EnvironmentValues.withValue(value, at: keyPath) {
                 base.build()
             }
         }
@@ -195,5 +195,39 @@ extension TextDocument {
         _ value: V
     ) -> some TextDocument {
         ViewWithEnvironmentValue(keyPath, value: value, content: self)
+    }
+}
+
+extension ViewWithEnvironmentObject: TextDocument where Content: TextDocument {
+    public var textBody: Never { fatalError() }
+
+    public struct DocumentInterpolation: DocumentInterpolationProtocol {
+        public typealias View = ViewWithEnvironmentObject<Content, V>
+        public typealias ModifyContent = Content.DocumentInterpolation.ModifyContent
+        let value: V
+        var base: Content.DocumentInterpolation
+        @_spi(DocumentUI)
+        public init(_ document: View) {
+            self.value = document.value
+            self.base = EnvironmentValues.withObject(document.value) {
+                Content.DocumentInterpolation(document.content)
+            }
+        }
+        @_spi(DocumentUI)
+        public mutating func modify<M>(_ modifier: M) where M : CoreUI.ViewModifier, ModifyContent == M.Modifiable {
+            base.modify(modifier)
+        }
+        @_spi(DocumentUI)
+        public mutating func build() -> Content.DocumentInterpolation.Result {
+            EnvironmentValues.withObject(value) {
+                base.build()
+            }
+        }
+    }
+}
+
+extension TextDocument {
+    public func environmentObject<V>(_ value: V) -> some TextDocument {
+        ViewWithEnvironmentObject(value, content: self)
     }
 }

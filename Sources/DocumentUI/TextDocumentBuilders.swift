@@ -4,146 +4,78 @@
 
 import Foundation
 
-protocol DocumentVisitor {
-    func visit<D>(_ document: D) where D: TextDocument
-    func visit<D0, D1>(
-        _ d0: D0, _ d1: D1
-    ) where D0: TextDocument, D1: TextDocument
-    func visit<D0, D1, D2>(
-        _ d0: D0, _ d1: D1, _ d2: D2
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument
-    func visit<D0, D1, D2, D3>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument
-    func visit<D0, D1, D2, D3, D4>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument
-    func visit<D0, D1, D2, D3, D4, D5>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument
-    func visit<D0, D1, D2, D3, D4, D5, D6>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7, D8>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7, D8, D9>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8, _ d9: D9
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument, D9: TextDocument
-}
-extension DocumentVisitor {
-    func visit<D0, D1>(
-        _ d0: D0, _ d1: D1
-    ) where D0: TextDocument, D1: TextDocument {
-        visit(d0); visit(d1)
-    }
-    func visit<D0, D1, D2>(
-        _ d0: D0, _ d1: D1, _ d2: D2
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument {
-        visit(d0); visit(d1); visit(d2)
-    }
-    func visit<D0, D1, D2, D3>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3)
-    }
-    func visit<D0, D1, D2, D3, D4>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4)
-    }
-    func visit<D0, D1, D2, D3, D4, D5>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4); visit(d5)
-    }
-    func visit<D0, D1, D2, D3, D4, D5, D6>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4); visit(d5); visit(d6)
-    }
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4); visit(d5); visit(d6); visit(d7)
-    }
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7, D8>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4); visit(d5); visit(d6); visit(d7); visit(d8)
-    }
-    func visit<D0, D1, D2, D3, D4, D5, D6, D7, D8, D9>(
-        _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8, _ d9: D9
-    ) where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument, D9: TextDocument {
-        visit(d0); visit(d1); visit(d2); visit(d3); visit(d4); visit(d5); visit(d6); visit(d7); visit(d8); visit(d9)
+#if swift(>=6.0)
+extension TextDocumentBuilder {
+    public static func buildBlock<each D: TextDocument>(
+        _ documents: repeat each D
+    ) -> TupleDocument<(repeat each D)> {
+        TupleDocument(documents: repeat each documents)
     }
 }
-
+#else
 extension TextDocumentBuilder {
     public static func buildBlock<D0, D1>(
         _ d0: D0, _ d1: D1
     ) -> TupleDocument<(D0, D1)> where D0: TextDocument, D1: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1)
+            visitor.visit(d0); visitor.visit(d1)
         }
     }
     public static func buildBlock<D0, D1, D2>(
         _ d0: D0, _ d1: D1, _ d2: D2
     ) -> TupleDocument<(D0, D1, D2)> where D0: TextDocument, D1: TextDocument, D2: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2)
         }
     }
     public static func buildBlock<D0, D1, D2, D3>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3
     ) -> TupleDocument<(D0, D1, D2, D3)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4
     ) -> TupleDocument<(D0, D1, D2, D3, D4)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4, D5>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5
     ) -> TupleDocument<(D0, D1, D2, D3, D4, D5)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4, d5)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4); visitor.visit(d5)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4, D5, D6>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6
     ) -> TupleDocument<(D0, D1, D2, D3, D4, D5, D6)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4, d5, d6)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4); visitor.visit(d5); visitor.visit(d6)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4, D5, D6, D7>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7
     ) -> TupleDocument<(D0, D1, D2, D3, D4, D5, D6, D7)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4, d5, d6, d7)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4); visitor.visit(d5); visitor.visit(d6); visitor.visit(d7)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4, D5, D6, D7, D8>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8
     ) -> TupleDocument<(D0, D1, D2, D3, D4, D5, D6, D7, D8)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4, d5, d6, d7, d8)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4); visitor.visit(d5); visitor.visit(d6); visitor.visit(d7); visitor.visit(d8)
         }
     }
     public static func buildBlock<D0, D1, D2, D3, D4, D5, D6, D7, D8, D9>(
         _ d0: D0, _ d1: D1, _ d2: D2, _ d3: D3, _ d4: D4, _ d5: D5, _ d6: D6, _ d7: D7, _ d8: D8, _ d9: D9
     ) -> TupleDocument<(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9)> where D0: TextDocument, D1: TextDocument, D2: TextDocument, D3: TextDocument, D4: TextDocument, D5: TextDocument, D6: TextDocument, D7: TextDocument, D8: TextDocument, D9: TextDocument {
         TupleDocument { visitor in
-            visitor.visit(d0, d1, d2, d3, d4, d5, d6, d7, d8, d9)
+            visitor.visit(d0); visitor.visit(d1); visitor.visit(d2); visitor.visit(d3); visitor.visit(d4); visitor.visit(d5); visitor.visit(d6); visitor.visit(d7); visitor.visit(d8); visitor.visit(d9)
         }
     }
 }
+#endif

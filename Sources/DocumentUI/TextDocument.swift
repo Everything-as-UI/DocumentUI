@@ -7,14 +7,13 @@
 
 import CoreUI
 import CommonUI
+@_exported import struct CoreUI.ForEach
+@_exported import struct CoreUI.Group
 
 public typealias TextDocumentBuilder = ViewBuilder
 public typealias NullDocument = NullView
 public typealias _ModifiedDocument<Content, Modifier> = _ModifiedContent<Content, Modifier>
 public typealias _ConditionalDocument<TrueContent, FalseContent> = _ConditionalContent<TrueContent, FalseContent>
-
-@_exported import struct CoreUI.ForEach
-@_exported import struct CoreUI.Group
 
 @_typeEraser(AnyTextDocument)
 public protocol TextDocument {

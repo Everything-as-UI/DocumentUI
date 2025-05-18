@@ -41,14 +41,15 @@ extension Joined: TextDocument where Separator: TextDocument {
         }
         public mutating func build() -> String {
             var sepInterpolator = Separator.DocumentInterpolation(document.separator)
-            let builder = Builder(ommitingEmptyElements: document.ommitingEmptyElements, separator: sepInterpolator.build())
+            let separator = sepInterpolator.build()
+            let builder = ResultBuilder(ommitingEmptyElements: document.ommitingEmptyElements, separator: separator)
             document.content.acceptor(builder)
             guard !builder.result.isEmpty else { return "" }
             for mod in modifiers { mod(&builder.result) }
             return builder.result
         }
 
-        final class Builder: DocumentVisitor {
+        final class ResultBuilder: TextDocumentVisitor {
             let ommitingEmptyElements: Bool
             let separator: String
             var result = ""

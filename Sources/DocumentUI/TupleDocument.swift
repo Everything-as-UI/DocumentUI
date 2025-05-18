@@ -6,11 +6,27 @@
 //
 
 import CoreUI
+import CommonUI
 
 public struct TupleDocument<T>: TextDocument {
-    let acceptor: (DocumentVisitor) -> Void
-    init(_ acceptor: @escaping (DocumentVisitor) -> Void) { self.acceptor = acceptor }
+    let acceptor: (TextDocumentVisitor) -> Void
+    
+    init(_ acceptor: @escaping (TextDocumentVisitor) -> Void) {
+        self.acceptor = acceptor
+    }
+
+    #if swift(>=6.0)
+    init<each D: TextDocument>(documents: repeat each D) where T == (repeat each D) {
+        self.acceptor = { visitor in
+            for document in repeat each documents {
+                visitor.visit(document)
+            }
+        }
+    }
+    #endif
+    
     public var textBody: Never { fatalError() }
+    
     @_spi(DocumentUI)
     public struct DocumentInterpolation: DocumentInterpolationProtocol {
         public typealias View = TupleDocument<T>
@@ -24,14 +40,14 @@ public struct TupleDocument<T>: TextDocument {
             modifiers.append(modifier.modify(content:))
         }
         public mutating func build() -> String {
-            let builder = Builder()
+            let builder = ResultBuilder()
             document.acceptor(builder)
             guard !builder.result.isEmpty else { return "" } // TODO: should check that all elements is NullDocument
             for mod in modifiers { mod(&builder.result) }
             return builder.result
         }
 
-        final class Builder: DocumentVisitor {
+        final class ResultBuilder: TextDocumentVisitor {
             var result: String = ""
             func visit<D>(_ document: D) where D : TextDocument {
                 var interpolation = D.DocumentInterpolation(document)
